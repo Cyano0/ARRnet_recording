@@ -60,6 +60,24 @@ def check_topics(desired: list[str], available: set[str]):
     return present, missing
 
 
+def get_unique_bag_path(bag_root: Path, base_name: str) -> Path:
+    """
+    Return a path under bag_root that does not yet exist.
+    If bag_root/base_name exists, append _001, _002, ... until free.
+    """
+    candidate = bag_root / base_name
+    if not candidate.exists():
+        return candidate
+
+    idx = 1
+    while True:
+        suffix = f"_{idx:03d}"
+        candidate = bag_root / f"{base_name}{suffix}"
+        if not candidate.exists():
+            return candidate
+        idx += 1
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Check required ROS 2 topics and record ros2 bag."
@@ -82,7 +100,9 @@ def main() -> int:
         "--bag-name",
         type=str,
         default=None,
-        help="Bag name (subdirectory). Default: bag_YYYYmmdd_HHMMSS",
+        help="Bag base name (subdirectory). "
+             "If omitted, uses bag_YYYYmmdd_HHMMSS. "
+             "If the name already exists, a numeric suffix is added.",
     )
     parser.add_argument(
         "--no-confirm",
@@ -150,11 +170,14 @@ def main() -> int:
 
     if args.bag_name is None:
         now = datetime.datetime.now()
-        bag_name = now.strftime("bag_%Y%m%d_%H%M%S")
+        base_name = now.strftime("bag_%Y%m%d_%H%M%S")
     else:
-        bag_name = args.bag_name
+        base_name = args.bag_name
 
-    bag_path = bag_root / bag_name
+    bag_path = get_unique_bag_path(bag_root, base_name)
+
+    print(f"\nBag root : {bag_root}")
+    print(f"Bag path : {bag_path} (auto-avoiding collisions)")
 
     cmd = ["ros2", "bag", "record", "-o", str(bag_path)]
     cmd.extend(present)
@@ -164,14 +187,11 @@ def main() -> int:
     print("\nRecording will run until you press Ctrl+C.\n")
 
     try:
-        # Propagate ROS environment into the child process automatically
         return subprocess.call(cmd)
     except KeyboardInterrupt:
-        # ros2 bag should handle SIGINT itself, but just in case:
         print("\nStopping recording...")
         return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
