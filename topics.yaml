@@ -1,0 +1,23 @@
+topics:
+  lidars:
+    # - /back_lidar/points
+    - /front_lidar/points
+  cameras:
+    - /front_camera/image_raw
+    - /front_camera/depth
+    - /front_camera/points
+    - /front/zed_node_1/rgb_raw/camera_info
+  gps:
+    - /gps_base/fix
+    - /gps_base/odometry
+    - /gps_base/yaw
+  tf:
+    - /tf
+    - /tf_static
+    - /robot_description
+  odometry:
+    - /odometry/global
+    - /odometry/local
+  clock:
+    - /clock
+
