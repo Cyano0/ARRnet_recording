@@ -156,7 +156,7 @@ def main() -> int:
         print("\nNothing to record, exiting.")
         return 1
 
-    if missing and not args.no-confirm:
+    if missing and not args.no_confirm:
         ans = input(
             "\nSome topics are missing. Record bag with present topics only? [y/N]: "
         ).strip().lower()
